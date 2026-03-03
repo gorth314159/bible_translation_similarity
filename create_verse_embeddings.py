@@ -18,8 +18,9 @@ DB_PATH = "data/bible.eng.db"
 CHROMA_PATH = "data/verse_embedding"
 COLLECTION_NAME = "bible_verses"
 MODEL_NAME = "google/embeddinggemma-300m"
-BATCH_SIZE = 4096  # encoding batch size (large — requires ~96GB RAM)
-CHROMA_BATCH = 40000  # chromadb insert batch size
+BATCH_SIZE = 256  # encoding batch size — tuned for RTX 3090 24GB VRAM
+CHROMA_BATCH = 5000  # chromadb insert batch size
+DEVICE = "cuda"  # use GPU for encoding
 
 
 def fetch_verses(db_path: str):
@@ -48,9 +49,9 @@ def main():
     total = len(rows)
     print(f"  Found {total:,} verses across translations.\n")
 
-    print(f"Loading embedding model: {MODEL_NAME}...")
-    model = SentenceTransformer(MODEL_NAME)
-    print("  Model loaded.\n")
+    print(f"Loading embedding model: {MODEL_NAME} on {DEVICE}...")
+    model = SentenceTransformer(MODEL_NAME, device=DEVICE)
+    print(f"  Model loaded on {model.device}.\n")
 
     print(f"Creating ChromaDB at: {CHROMA_PATH}")
     client = chromadb.PersistentClient(path=CHROMA_PATH)
